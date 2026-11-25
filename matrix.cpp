@@ -8,7 +8,7 @@ constexpr int kRows = 20480;
 constexpr int kColumns = 4096;
 constexpr int kIterations = 10;
 
-volatile char trash;
+volatile char trash; //volatile variable to prevent compiler optimization of read operations
 char matrix[kRows][kColumns];
 
 }  // namespace
@@ -25,7 +25,7 @@ double get_elapsed_seconds(const struct timespec& start, const struct timespec& 
 void write_row() {
     for (int row = 0; row < kRows; ++row) {
         for (int col = 0; col < kColumns; ++col) {
-            matrix[row][col] = 'A';
+            matrix[row][col] = 'A'; //A represents row-major order
         }
     }
 }
@@ -34,7 +34,7 @@ void write_row() {
 void write_column() {
     for (int col = 0; col < kColumns; ++col) {
         for (int row = 0; row < kRows; ++row) {
-            matrix[row][col] = 'B';
+            matrix[row][col] = 'B'; //B represents column-major order
         }
     }
 }
@@ -44,10 +44,10 @@ void read_row() {
     char temp = 0;
     for (int row = 0; row < kRows; ++row) {
         for (int col = 0; col < kColumns; ++col) {
-            temp = matrix[row][col];
+            temp = matrix[row][col]; //read into temp variable to prevent compiler optimization
         }
     }
-    trash = temp;
+    trash = temp; //trick to prevent compiler optimization of the read operation
 }
 
 // Read the matrix one column at a time, traversing memory with large strides.
@@ -55,28 +55,29 @@ void read_column() {
     char temp = 0;
     for (int col = 0; col < kColumns; ++col) {
         for (int row = 0; row < kRows; ++row) {
-            temp = matrix[row][col];
+            temp = matrix[row][col]; //read into temp variable to prevent compiler optimization
         }
     }
-    trash = temp;
+    trash = temp; //trick to prevent compiler optimization of the read operation
 }
 
 // Run an operation repeatedly and report its average elapsed time.
 double measure_time(void (*operation)()) {
     struct timespec start, end;
 
-    clock_gettime(CLOCK_MONOTONIC, &start);
+    clock_gettime(CLOCK_MONOTONIC, &start); // Start timing
     for (int i = 0; i < kIterations; ++i) {
-        operation();
+        operation(); // Run the operation for the specified number of iterations
     }
-    clock_gettime(CLOCK_MONOTONIC, &end);
+    clock_gettime(CLOCK_MONOTONIC, &end); // End timing
 
-    return get_elapsed_seconds(start, end) / kIterations;
+    return get_elapsed_seconds(start, end) / kIterations; //return average time per iteration
 }
 
 }  // namespace benchmark
 
 int main() {
+    // Measure the time taken for each operation and print the results
     const double time_row_write = benchmark::measure_time(benchmark::write_row);
     const double time_column_write = benchmark::measure_time(benchmark::write_column);
     const double time_row_read = benchmark::measure_time(benchmark::read_row);
